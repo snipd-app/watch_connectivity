@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity_garmin/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity_garmin/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity_garmin/build" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity_platform_interface/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity_platform_interface/build" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity_platform_interface/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity/example/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity/example/build" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity/example/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity/build" />
+      <excludeFolder url="file://$MODULE_DIR$/watch_connectivity/.pub" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

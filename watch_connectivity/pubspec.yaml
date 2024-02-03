@@ -11,17 +11,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  watch_connectivity_platform_interface: ^0.1.1
+  watch_connectivity_platform_interface:
+    path: ../watch_connectivity_platform_interface
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   rexios_lints: ^6.0.1
-
-# dependency_overrides:
-#   watch_connectivity_platform_interface:
-#     path: ../watch_connectivity_platform_interface
 
 flutter:
   plugin:
