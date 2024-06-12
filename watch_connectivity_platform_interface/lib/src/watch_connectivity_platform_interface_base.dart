@@ -2,6 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rxdart/rxdart.dart';
+
+class WatchStatus {
+  const WatchStatus({
+    required this.isPaired,
+    required this.isReachable,
+    required this.isWatchAppInstalled,
+  });
+
+  final bool isPaired;
+  final bool isReachable;
+  final bool isWatchAppInstalled;
+}
 
 /// Interface to communicate with watch devices
 ///
@@ -13,10 +26,13 @@ abstract class WatchConnectivityBase {
   @protected
   final MethodChannel channel;
 
-  final _messageStreamController =
-      StreamController<Map<String, dynamic>>.broadcast();
-  final _contextStreamController =
-      StreamController<Map<String, dynamic>>.broadcast();
+  final _watchStatusStreamController = BehaviorSubject<WatchStatus>();
+  final _messageStreamController = BehaviorSubject<Map<String, dynamic>>();
+  final _contextStreamController = BehaviorSubject<Map<String, dynamic>>();
+  final _userInfoStreamController = BehaviorSubject<Map<String, dynamic>>();
+  
+  /// Stream of watch status changes
+  Stream<WatchStatus> get watchStatusStream => _watchStatusStreamController.stream;
 
   /// Stream of messages received
   Stream<Map<String, dynamic>> get messageStream =>
@@ -26,6 +42,10 @@ abstract class WatchConnectivityBase {
   Stream<Map<String, dynamic>> get contextStream =>
       _contextStreamController.stream;
 
+  /// Stream of user info received
+  Stream<Map<String, dynamic>> get userInfoStream =>
+      _userInfoStreamController.stream;
+
   /// Create an instance of [WatchConnectivityBase] for the given
   /// [pluginName]
   WatchConnectivityBase({required String pluginName})
@@ -33,17 +53,37 @@ abstract class WatchConnectivityBase {
     channel.setMethodCallHandler(_handle);
   }
 
+  void dispose() {
+    _watchStatusStreamController.close();
+    _messageStreamController.close();
+    _contextStreamController.close();
+    _userInfoStreamController.close();
+  }
+
   Future _handle(MethodCall call) async {
-    switch (call.method) {
-      case 'didReceiveMessage':
-        _messageStreamController.add(Map<String, dynamic>.from(call.arguments));
-        break;
-      case 'didReceiveApplicationContext':
-        _contextStreamController.add(Map<String, dynamic>.from(call.arguments));
-        break;
-      default:
-        throw UnimplementedError('${call.method} not implemented');
-    }
+      switch (call.method) {
+        case 'didUpdateWatchState':
+          _watchStatusStreamController.add(WatchStatus(
+            isPaired: call.arguments['isPaired'],
+            isReachable: call.arguments['isReachable'],
+            isWatchAppInstalled: call.arguments['isWatchAppInstalled'],
+          ));
+          break;
+        case 'didReceiveMessage':
+          _messageStreamController
+              .add(Map<String, dynamic>.from(call.arguments));
+          break;
+        case 'didReceiveApplicationContext':
+          _contextStreamController
+              .add(Map<String, dynamic>.from(call.arguments));
+          break;
+        case 'didReceiveUserInfo':
+          _userInfoStreamController
+              .add(Map<String, dynamic>.from(call.arguments));
+          break;
+        default:
+          throw UnimplementedError('${call.method} not implemented');
+      }
   }
 
   /// If watches are supported by the current platform
@@ -89,5 +129,10 @@ abstract class WatchConnectivityBase {
   /// Update the application context
   Future<void> updateApplicationContext(Map<String, dynamic> context) {
     return channel.invokeMethod('updateApplicationContext', context);
+  }
+
+  /// Transfer user info
+  Future<void> transferUserInfo(Map<String, dynamic> info) {
+    return channel.invokeMethod('transferUserInfo', info);
   }
 }
