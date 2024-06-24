@@ -36,6 +36,12 @@ public class SwiftWatchConnectivityPlugin: NSObject, FlutterPlugin, WCSessionDel
             result(session?.isPaired ?? false)
         case "isReachable":
             result(session?.isReachable ?? false)
+        case "status":
+            result([
+                "isPaired": session?.isPaired ?? false,
+                "isReachable": session?.isReachable ?? false,
+                "isWatchAppInstalled": session?.isWatchAppInstalled ?? false,
+            ])
         case "applicationContext":
             result(session?.applicationContext ?? [:])
         case "receivedApplicationContexts":
@@ -52,23 +58,64 @@ public class SwiftWatchConnectivityPlugin: NSObject, FlutterPlugin, WCSessionDel
             } catch {
                 result(FlutterError(code: "Error updating application context", message: error.localizedDescription, details: nil))
             }
+        case "transferUserInfo":
+            do {
+                try session?.transferUserInfo(call.arguments as! [String: Any])
+                result(nil)
+            } catch {
+                result(FlutterError(code: "Error transferUserInfo", message: error.localizedDescription, details: nil))
+            }
         // Not implemented
         default:
             result(FlutterMethodNotImplemented)
         }
     }
     
-    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        didUpdateWatchState(session)
+    }
     
-    public func sessionDidBecomeInactive(_ session: WCSession) {}
+    public func sessionDidBecomeInactive(_ session: WCSession) {
+        didUpdateWatchState(session)
+    }
     
-    public func sessionDidDeactivate(_ session: WCSession) {}
+    public func sessionDidDeactivate(_ session: WCSession) {
+        didUpdateWatchState(session)
+    }
+    
+    public func sessionWatchStateDidChange(_ session: WCSession) {
+        didUpdateWatchState(session)
+    }
+    
+    public func sessionReachabilityDidChange(_ session: WCSession) {
+        didUpdateWatchState(session)
+    }
+    
+    private func didUpdateWatchState(_ session: WCSession) {
+        DispatchQueue.main.async {
+            self.channel.invokeMethod("didUpdateWatchState", arguments: [
+                "isPaired": session.isPaired,
+                "isReachable": session.isReachable,
+                "isWatchAppInstalled": session.isWatchAppInstalled,
+            ])
+        }
+    }
     
     public func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        channel.invokeMethod("didReceiveMessage", arguments: message)
+        DispatchQueue.main.async {
+            self.channel.invokeMethod("didReceiveMessage", arguments: message)
+        }
     }
     
     public func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
-        channel.invokeMethod("didReceiveApplicationContext", arguments: applicationContext)
+        DispatchQueue.main.async {
+            self.channel.invokeMethod("didReceiveApplicationContext", arguments: applicationContext)
+        }
+    }
+
+    public func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
+        DispatchQueue.main.async {
+            self.channel.invokeMethod("didReceiveUserInfo", arguments: userInfo)
+        }
     }
 }
