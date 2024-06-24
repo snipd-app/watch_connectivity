@@ -36,6 +36,12 @@ public class SwiftWatchConnectivityPlugin: NSObject, FlutterPlugin, WCSessionDel
             result(session?.isPaired ?? false)
         case "isReachable":
             result(session?.isReachable ?? false)
+        case "status":
+            result([
+                "isPaired": session?.isPaired ?? false,
+                "isReachable": session?.isReachable ?? false,
+                "isWatchAppInstalled": session?.isWatchAppInstalled ?? false,
+            ])
         case "applicationContext":
             result(session?.applicationContext ?? [:])
         case "receivedApplicationContexts":

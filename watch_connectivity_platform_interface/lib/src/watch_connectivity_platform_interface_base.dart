@@ -30,9 +30,10 @@ abstract class WatchConnectivityBase {
   final _messageStreamController = BehaviorSubject<Map<String, dynamic>>();
   final _contextStreamController = BehaviorSubject<Map<String, dynamic>>();
   final _userInfoStreamController = BehaviorSubject<Map<String, dynamic>>();
-  
+
   /// Stream of watch status changes
-  Stream<WatchStatus> get watchStatusStream => _watchStatusStreamController.stream;
+  Stream<WatchStatus> get watchStatusStream =>
+      _watchStatusStreamController.stream;
 
   /// Stream of messages received
   Stream<Map<String, dynamic>> get messageStream =>
@@ -61,29 +62,41 @@ abstract class WatchConnectivityBase {
   }
 
   Future _handle(MethodCall call) async {
-      switch (call.method) {
-        case 'didUpdateWatchState':
-          _watchStatusStreamController.add(WatchStatus(
-            isPaired: call.arguments['isPaired'],
-            isReachable: call.arguments['isReachable'],
-            isWatchAppInstalled: call.arguments['isWatchAppInstalled'],
-          ));
-          break;
-        case 'didReceiveMessage':
-          _messageStreamController
-              .add(Map<String, dynamic>.from(call.arguments));
-          break;
-        case 'didReceiveApplicationContext':
-          _contextStreamController
-              .add(Map<String, dynamic>.from(call.arguments));
-          break;
-        case 'didReceiveUserInfo':
-          _userInfoStreamController
-              .add(Map<String, dynamic>.from(call.arguments));
-          break;
-        default:
-          throw UnimplementedError('${call.method} not implemented');
-      }
+    switch (call.method) {
+      case 'didUpdateWatchState':
+        _watchStatusStreamController.add(WatchStatus(
+          isPaired: call.arguments['isPaired'],
+          isReachable: call.arguments['isReachable'],
+          isWatchAppInstalled: call.arguments['isWatchAppInstalled'],
+        ));
+        break;
+      case 'didReceiveMessage':
+        _messageStreamController.add(Map<String, dynamic>.from(call.arguments));
+        break;
+      case 'didReceiveApplicationContext':
+        _contextStreamController.add(Map<String, dynamic>.from(call.arguments));
+        break;
+      case 'didReceiveUserInfo':
+        _userInfoStreamController
+            .add(Map<String, dynamic>.from(call.arguments));
+        break;
+      default:
+        throw UnimplementedError('${call.method} not implemented');
+    }
+  }
+
+  /// Get current status of the watch
+  Future<WatchStatus?> get status async {
+    final rawResult =
+        await channel.invokeMethod<Map<Object?, Object?>>('status');
+    final result = rawResult == null ? null : Map<String, bool>.from(rawResult);
+    return result != null
+        ? WatchStatus(
+            isPaired: result['isPaired'] ?? false,
+            isReachable: result['isReachable'] ?? false,
+            isWatchAppInstalled: result['isWatchAppInstalled'] ?? false,
+          )
+        : null;
   }
 
   /// If watches are supported by the current platform
